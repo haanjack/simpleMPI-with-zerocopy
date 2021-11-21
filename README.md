@@ -1,20 +1,31 @@
-# simpleMPI - simpleMPI
+# simpleMPI with zero-copy
 
 ## Description
 
 Simple example demonstrating how to use MPI in combination with CUDA.
 
+This code is modified from NVIDIA's simpleMPI example to for my Jetson cluster's evaluation with zero-copy.
+But this code operation is not limited to the jetson only, so I determined to remain most of NVIDIA's codes.
+
+In general, mpi awares NVIDIA GPU (CUDA). When the hardware supports GPU Direct, GPU RDMA provides efficient data transfer between the GPUs. However, Jetson's networking does not provide such environment. Instead, we can utilize integrated memory architecture to minimize data transfer between the CPU and the GPU.
+
 ## Key Concepts
 
-CUDA Systems Integration, MPI, Multithreading
+CUDA Systems Integration, MPI, Multithreading, Zero-copy
 
 ## Supported SM Architectures
 
 [SM 3.5 ](https://developer.nvidia.com/cuda-gpus)  [SM 3.7 ](https://developer.nvidia.com/cuda-gpus)  [SM 5.0 ](https://developer.nvidia.com/cuda-gpus)  [SM 5.2 ](https://developer.nvidia.com/cuda-gpus)  [SM 6.0 ](https://developer.nvidia.com/cuda-gpus)  [SM 6.1 ](https://developer.nvidia.com/cuda-gpus)  [SM 7.0 ](https://developer.nvidia.com/cuda-gpus)  [SM 7.2 ](https://developer.nvidia.com/cuda-gpus)  [SM 7.5 ](https://developer.nvidia.com/cuda-gpus)  [SM 8.0 ](https://developer.nvidia.com/cuda-gpus)  [SM 8.6 ](https://developer.nvidia.com/cuda-gpus)
 
+### When you are using Jetson (like my use case)
+
+SM 7.2: Jetson Xavier NX, Jetson AGX Xavier
+SM 6.2: Jetson TX2
+SM 5.2: Jetson Nano, Jetson TX1
+
 ## Supported OSes
 
-Linux, Windows
+Linux 
 
 ## Supported CPU Architecture
 
@@ -35,16 +46,6 @@ Make sure the dependencies mentioned in [Dependencies]() section above are insta
 
 ## Build and Run
 
-### Windows
-The Windows samples are built using the Visual Studio IDE. Solution files (.sln) are provided for each supported version of Visual Studio, using the format:
-```
-*_vs<version>.sln - for Visual Studio <version>
-```
-Each individual sample has its own set of solution files in its directory:
-
-To build/examine all the samples at once, the complete solution files should be used. To build/examine a single sample, the individual sample solution files should be used.
-> **Note:** Some samples require that the Microsoft DirectX SDK (June 2010 or newer) be installed and that the VC++ directory paths are properly set up (**Tools > Options...**). Check DirectX Dependencies section for details."
-
 ### Linux
 The Linux samples are built using makefiles. To use the makefiles, change the current directory to the sample directory you wish to build, and run make:
 ```
@@ -64,6 +65,13 @@ The samples makefiles can take advantage of certain options:
     ```
     $ make SMS="50 60"
     ```
+
+  - If your target is Jetson devices, you should provide SM architectures as follow,
+    ```
+    $ make SMS="72 62 52"
+    ```
+    Because, current version of [Jetpack SDK](https://developer.nvidia.com/embedded/jetpack) 4.6 provides CUDA 10.2 and it does not support SM 8.0+ CUDA architectures.
+
 
 *  **HOST_COMPILER=<host_compiler>** - override the default g++ host compiler. See the [Linux Installation Guide](http://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html#system-requirements) for a list of supported host compilers.
 ```
