@@ -38,8 +38,8 @@
 // Forward declarations
 extern "C" {
 void initData(float *data, int dataSize);
-void computeGPU(float *hostOutputData, float *hostInputData, int blockSize, int gridSize);
-void computeGPU_zerocopy(float *hostOutputData, float *hostInputData, int blockSize, int gridSize);
+void computeGPU(float *hostOutputData, float *hostInputData, int blockSize, int gridSize, int commRank);
+void computeGPU_zerocopy(float *hostOutputData, float *hostInputData, int blockSize, int gridSize, int commRank);
 float sum(float *data, int size);
 void my_abort(int err);
 }

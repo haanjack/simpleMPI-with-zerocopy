@@ -65,7 +65,7 @@ void initData(float *data, int dataSize) {
 
 // CUDA computation on each node
 // No MPI here, only CUDA
-void computeGPU(float *hostData_out, float *hostData_in, int blockSize, int gridSize) {
+void computeGPU(float *hostData_out, float *hostData_in, int blockSize, int gridSize, int commRank) {
   int dataSize = blockSize * gridSize;
 
   // Create CUDA event
@@ -99,7 +99,7 @@ void computeGPU(float *hostData_out, float *hostData_in, int blockSize, int grid
 
   float elapsed_time_in_ms;
   cudaEventElapsedTime(&elapsed_time_in_ms, start, stop);
-  std::cout << "Elapsed Time: " << elapsed_time_in_ms << " ms." << std::endl; 
+  std::cout << "[" << commRank << "] Elapsed Time: " << elapsed_time_in_ms << " ms." << std::endl; 
 
   CUDA_CHECK(cudaEventDestroy(start));
   CUDA_CHECK(cudaEventDestroy(stop));
@@ -109,7 +109,7 @@ void computeGPU(float *hostData_out, float *hostData_in, int blockSize, int grid
   CUDA_CHECK(cudaFree(deviceOutputData));
 }
 
-void computeGPU_zerocopy(float *hostOutputData, float *hostInputData, int blockSize, int gridSize) {
+void computeGPU_zerocopy(float *hostOutputData, float *hostInputData, int blockSize, int gridSize, int commRank) {
   // Create CUDA event
   cudaEvent_t start, stop;
   CUDA_CHECK(cudaEventCreate(&start));
@@ -133,7 +133,7 @@ void computeGPU_zerocopy(float *hostOutputData, float *hostInputData, int blockS
 
   float elapsed_time_in_ms;
   cudaEventElapsedTime(&elapsed_time_in_ms, start, stop);
-  std::cout << "Elapsed Time: " << elapsed_time_in_ms << " ms." << std::endl; 
+  std::cout << "[" << commRank << "] Elapsed Time: " << elapsed_time_in_ms << " ms." << std::endl; 
 
   CUDA_CHECK(cudaEventDestroy(start));
   CUDA_CHECK(cudaEventDestroy(stop));

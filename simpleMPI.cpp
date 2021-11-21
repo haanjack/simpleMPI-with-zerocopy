@@ -116,10 +116,10 @@ int main(int argc, char *argv[]) {
 
   // On each node, run computation on GPU
   if (zerocopy == 0) {
-    computeGPU(dataNode_out, dataNode_in, blockSize, gridSize);
+    computeGPU(dataNode_out, dataNode_in, blockSize, gridSize, commRank);
   }
   else {
-    computeGPU_zerocopy(dataNode_out, dataNode_in, blockSize, gridSize);
+    computeGPU_zerocopy(dataNode_out, dataNode_in, blockSize, gridSize, commRank);
   }
 
   // Reduction to the root node, computing the sum of output elements
