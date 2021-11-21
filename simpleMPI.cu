@@ -68,12 +68,20 @@ void initData(float *data, int dataSize) {
 void computeGPU(float *hostData_out, float *hostData_in, int blockSize, int gridSize) {
   int dataSize = blockSize * gridSize;
 
+  // Create CUDA event
+  cudaEvent_t start, stop;
+  CUDA_CHECK(cudaEventCreate(&start));
+  CUDA_CHECK(cudaEventCreate(&stop));
+
   // Allocate data on GPU memory
   float *deviceInputData = NULL;
   CUDA_CHECK(cudaMalloc((void **)&deviceInputData, dataSize * sizeof(float)));
 
   float *deviceOutputData = NULL;
   CUDA_CHECK(cudaMalloc((void **)&deviceOutputData, dataSize * sizeof(float)));
+
+  // Record GPU start time
+  CUDA_CHECK(cudaEventRecord(start));
 
   // Copy to GPU memory
   CUDA_CHECK(cudaMemcpy(deviceInputData, hostData_in, dataSize * sizeof(float),
@@ -86,43 +94,49 @@ void computeGPU(float *hostData_out, float *hostData_in, int blockSize, int grid
   CUDA_CHECK(cudaMemcpy(hostData_out, deviceOutputData, dataSize * sizeof(float),
                         cudaMemcpyDeviceToHost));
 
+  CUDA_CHECK(cudaEventRecord(stop));
+  CUDA_CHECK(cudaEventSynchronize(stop));
+
+  float elapsed_time_in_ms;
+  cudaEventElapsedTime(&elapsed_time_in_ms, start, stop);
+  std::cout << "Elapsed Time: " << elapsed_time_in_ms << " ms." << std::endl; 
+
+  CUDA_CHECK(cudaEventDestroy(start));
+  CUDA_CHECK(cudaEventDestroy(stop));
+  
   // Free GPU memory
   CUDA_CHECK(cudaFree(deviceInputData));
   CUDA_CHECK(cudaFree(deviceOutputData));
 }
 
-void computeGPU_zerocopy(float *hostOutputData, float *hostInputData, int blockSize, int gridSize, bool zerocopy) {
-  int dataSize = blockSize * gridSize;
+void computeGPU_zerocopy(float *hostOutputData, float *hostInputData, int blockSize, int gridSize) {
+  // Create CUDA event
+  cudaEvent_t start, stop;
+  CUDA_CHECK(cudaEventCreate(&start));
+  CUDA_CHECK(cudaEventCreate(&stop));
+
+  // Record GPU start time
+  CUDA_CHECK(cudaEventRecord(start));
 
   // Allocate data on GPU memory
   float *deviceInputData = NULL;
+  CUDA_CHECK(cudaHostGetDevicePointer((void **)&deviceInputData,  (void *)hostInputData, 0));
+  
   float *deviceOutputData = NULL;
-  if (zerocopy == false) {
-    CUDA_CHECK(cudaMalloc((void **)&deviceInputData, dataSize * sizeof(float)));
-    CUDA_CHECK(cudaMalloc((void **)&deviceOutputData, dataSize * sizeof(float)));
-
-    // Copy to GPU memory
-    CUDA_CHECK(cudaMemcpy(deviceInputData, hostInputData, dataSize * sizeof(float),
-			cudaMemcpyHostToDevice));
-  }
-  else {
-    CUDA_CHECK(cudaHostGetDevicePointer((void **)&deviceInputData,  (void *)hostInputData, 0));
-    CUDA_CHECK(cudaHostGetDevicePointer((void **)&deviceOutputData, (void *)hostInputData, 0));
-  }
+  CUDA_CHECK(cudaHostGetDevicePointer((void **)&deviceOutputData, (void *)hostOutputData, 0));
 
   // Run kernel
   simpleMPIKernel<<<gridSize, blockSize>>>(deviceInputData, deviceOutputData);
 
-  if (zerocopy == 0) {
-    // Copy data back to CPU memory
-    CUDA_CHECK(cudaMemcpy(hostOutputData, deviceOutputData, dataSize * sizeof(float),
-                        cudaMemcpyDeviceToHost));
+  CUDA_CHECK(cudaEventRecord(stop));
+  CUDA_CHECK(cudaEventSynchronize(stop));
 
-    // Free GPU memory
-    CUDA_CHECK(cudaFree(deviceInputData));
-    CUDA_CHECK(cudaFree(deviceOutputData));
-  }
+  float elapsed_time_in_ms;
+  cudaEventElapsedTime(&elapsed_time_in_ms, start, stop);
+  std::cout << "Elapsed Time: " << elapsed_time_in_ms << " ms." << std::endl; 
 
+  CUDA_CHECK(cudaEventDestroy(start));
+  CUDA_CHECK(cudaEventDestroy(stop));
 }
 
 float sum(float *data, int size) {

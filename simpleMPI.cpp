@@ -66,18 +66,14 @@ int main(int argc, char *argv[]) {
   int blockSize = 256;
   int gridSize = 65536;
   int dataSizePerNode = gridSize * blockSize;
-  int zerocopy = 0;
-  
-  std::cout << argv[1] << std::endl;
-  if (*argv[argc-1] == 1) {
-    std::cout << "Zerocpy" << std::endl;
-    zerocopy = 1;
-  }
-  zerocopy = 0;
-
 
   // Initialize MPI state
   MPI_CHECK(MPI_Init(&argc, &argv));
+  
+  int zerocopy = 0;
+  if (argc == 2) {
+    zerocopy = atoi(argv[1]);
+  }
 
   // Get our MPI node number and node count
   int commSize, commRank;
@@ -99,10 +95,12 @@ int main(int argc, char *argv[]) {
   float *dataNode_in = nullptr;
   float *dataNode_out = nullptr;
   if (zerocopy == 0) {
+    std::cout << "Normal mode" << std::endl;
     dataNode_in  = new float[dataSizePerNode];
     dataNode_out = new float[dataSizePerNode];
   }
   else {
+    std::cout << "Zero-copy mode" << std::endl;
     cudaHostAlloc((void **)&dataNode_in,  sizeof(float) * dataSizePerNode, cudaHostAllocMapped);
     cudaHostAlloc((void **)&dataNode_out, sizeof(float) * dataSizePerNode, cudaHostAllocMapped);
   }

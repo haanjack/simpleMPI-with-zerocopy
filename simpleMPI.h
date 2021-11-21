@@ -39,7 +39,7 @@
 extern "C" {
 void initData(float *data, int dataSize);
 void computeGPU(float *hostOutputData, float *hostInputData, int blockSize, int gridSize);
-void computeGPU_zerocopy(float *hostOutputData, float *hostInputData, int blockSize, int gridSize, bool zerocopy = true);
+void computeGPU_zerocopy(float *hostOutputData, float *hostInputData, int blockSize, int gridSize);
 float sum(float *data, int size);
 void my_abort(int err);
 }
